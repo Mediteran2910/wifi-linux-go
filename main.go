@@ -6,18 +6,36 @@ import (
 	"time"
 
 	"my-go-app/handlers"
+	softap "my-go-app/soft-ap"
 )
 
 func main() {
+	iface := "wlxec750c9f9f9b"
+	if err := softap.StartHotspot(iface); err != nil {
+		log.Fatalf("Fatal: Failed to start the hotspot. Exiting.")
+	}
 
+	// Captive portal probe endpoints (Android, iOS, Windows)
+	http.HandleFunc("/generate_204", captivePortalHandler)              // Android
+	http.HandleFunc("/gen_204", captivePortalHandler)                   // Some Android variants
+	http.HandleFunc("/hotspot-detect.html", captivePortalHandler)       // iOS/macOS
+	http.HandleFunc("/library/test/success.html", captivePortalHandler) // Older iOS/macOS
+	http.HandleFunc("/ncsi.txt", captivePortalHandler)                  // Windows
+	http.HandleFunc("/connecttest.txt", captivePortalHandler)           // Windows 10+
+	http.HandleFunc("/redirect", captivePortalHandler)                  // Generic
+
+	// Static files (your portal UI)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "static/index.html")
 	})
+
+	// API endpoints
 	http.HandleFunc("/api/wifi/check-saved-profile", handlers.CheckProfileHandler)
 	http.HandleFunc("/api/wifi/connect", handlers.ConnectHandler)
 	http.HandleFunc("/api/wifi/scan", handlers.ScanHandler)
 
+	// HTTP server
 	s := &http.Server{
 		Addr:         ":8080",
 		ReadTimeout:  5 * time.Second,
@@ -28,4 +46,12 @@ func main() {
 	if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Could not start server: %s\n", err)
 	}
+}
+
+// captivePortalHandler responds to probe requests
+func captivePortalHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Captive portal probe detected: %s from %s", r.URL.Path, r.RemoteAddr)
+
+	// Redirect client to your portal page
+	http.Redirect(w, r, "http://10.42.0.1:8080/", http.StatusFound)
 }
