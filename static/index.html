@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Go-Powered Wi-Fi App</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div id="main-app" class="main-app">
+      <h1>Wi-Fi Scanner</h1>
+      <div id="status-messages">
+        <p id="loading-message" class="status-text"></p>
+        <p id="error-message" class="status-text error-message hidden"></p>
+        <p id="connecting-message" class="status-text hidden"></p>
+      </div>
+      <div id="networks-list" class="wifi-list-container hidden"></div>
+    </div>
+
+    <div id="connection-success-page" class="success-page hidden">
+      <div class="success-content">
+        <h1 class="success-title">Connection Established!</h1>
+        <p class="success-network-info">
+          Connected to: <span id="connected-network-name"></span>
+        </p>
+
+        <div class="next-steps-container">
+          <h2 class="next-steps-title">Next Steps:</h2>
+          <ul class="next-steps-list">
+            <li>
+              Disconnect from <span class="ap-name">"Your_NanoPi_AP_Name"</span>.
+            </li>
+            <li>Reconnect your device to the internet.</li>
+            <li>
+              Visit dashboard:
+              <a
+                id="dashboard-link"
+                href="https://ourdashboard.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="dashboard-link"
+              >
+                https://ourdashboard.com
+              </a>
+            </li>
+          </ul>
+        </div>
+        <p class="close-tab-info">You can now close this tab.</p>
+      </div>
+    </div>
+
+    <div id="wifi-connect-modal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <button class="modal-close-btn" aria-label="Close">&times;</button>
+        <div class="network-details">
+          <p class="network-name-label">Network Name:</p>
+          <h2 class="network-name"></h2>
+        </div>
+        <form id="connect-form" class="connect-form">
+          <div class="password-field-container hidden">
+            <label for="password-input" class="password-label">Password:</label>
+            <div class="password-input-wrapper">
+              <input
+                type="password"
+                id="password-input"
+                class="password-input"
+                placeholder="Enter password"
+              />
+              <button
+                type="button"
+                class="toggle-password-btn"
+                aria-label="Toggle password visibility"
+              >
+                <img
+                  src="/static/public/show-pass.svg"
+                  alt="Show password icon"
+                  class="toggle-icon"
+                />
+              </button>
+            </div>
+          </div>
+          <p id="connection-error" class="error-message hidden"></p>
+          <button type="submit" id="connect-btn" class="connect-btn">
+            Connect
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+  </body>
+</html>

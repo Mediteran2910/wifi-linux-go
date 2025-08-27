@@ -1,0 +1,414 @@
+:root {
+  --bg-from: #0e0e0e;
+  --bg-to: #434343;
+  --text-color: #fdfdfd;
+  --secondary-text: #b8b8b8;
+  --border-color: #5f5f5f;
+  --divider-color: rgba(108, 108, 108, 0.4);
+  --hover-bg: rgba(55, 55, 55, 0.4);
+  --modal-bg-start: #0e0e0e;
+  --modal-bg-end: #434343;
+}
+
+body {
+  background-color: var(--bg-from);
+  font-family: sans-serif;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+
+
+.main-app {
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 100vh;
+  width: 95%;
+  max-width: 520px;
+  
+}
+
+.main-app h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-color);
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+/* New Status and Message Styling */
+.status-text {
+  text-align: center;
+  color: var(--secondary-text);
+  font-size: 0.875rem;
+}
+
+.error-message {
+  color: #ef4444;
+}
+
+/* WiFi List Styling */
+.wifi-list-container {
+  height: auto;
+  background-color: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--divider-color);
+  border-radius: 8px;
+  width: 100%;
+  
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.wifi-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background-color: transparent;
+  transition: background-color 0.2s ease-in-out;
+  border-bottom: 1px solid var(--divider-color);
+  width: 100%;
+  padding-block: 1rem;
+}
+
+.wifi-list-item:last-child {
+  border-bottom: none;
+}
+
+.wifi-list-item:hover {
+  background-color: var(--hover-bg);
+}
+
+.network-name-text {
+  font-weight: 500;
+  font-size: 1rem;
+  /* Ensure text doesn't wrap and push icons */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-grow: 1; /* Allow network name to take up available space */
+  margin-left: 10px;
+}
+
+.network-icons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  /* Prevent icons from shrinking */
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.network-icons img {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.security-icon {
+  height: 1rem;
+  width: 1rem;
+}
+
+/* New Connection Success Page Styling */
+.success-page {
+  background: linear-gradient(to bottom right, var(--modal-bg-start), var(--modal-bg-end));
+  min-height: 100vh;
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.success-content {
+  width: 100%;
+  max-width: 448px;
+  margin: 0 auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.success-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #4ade80;
+  margin-bottom: 1rem;
+}
+
+.success-network-info {
+  font-size: 0.875rem;
+  color: #e5e5e5;
+  margin-bottom: 1.5rem;
+}
+
+.success-network-info span {
+  font-weight: 600;
+}
+
+.next-steps-container {
+  text-align: left;
+  margin-bottom: 2rem;
+}
+
+.next-steps-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 0.75rem;
+}
+
+.next-steps-list {
+  list-style-type: disc;
+  list-style-position: inside;
+  color: #d1d5db;
+  font-size: 0.75rem;
+}
+
+.next-steps-list li {
+  margin-bottom: 0.5rem;
+}
+
+.ap-name {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.dashboard-link {
+  font-weight: 600;
+  color: #60a5fa;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.dashboard-link:hover {
+  text-decoration: underline;
+}
+
+.close-tab-info {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 1rem;
+}
+
+/* Modal styling */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(to bottom right, var(--modal-bg-start), var(--modal-bg-end));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  z-index: 50;
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.modal-overlay.hidden {
+  display: none;
+  opacity: 0;
+}
+
+.modal-content {
+  position: relative;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 448px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  color: var(--text-color);
+  border: 1px solid transparent;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: rgba(156, 163, 175, 1);
+  background: none;
+  border: none;
+  font-size: 2rem;
+  font-weight: 300;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.network-details p {
+  color: var(--secondary-text);
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.05rem;
+}
+
+.network-details h2 {
+  color: var(--text-color);
+  font-size: 1rem;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.connect-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.password-label {
+  display: block;
+  color: var(--secondary-text);
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.password-input-wrapper {
+  position: relative;
+  /* Add flexbox to container to properly align input and button */
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.password-input {
+  /* Remove border from input and apply it to the wrapper */
+  border: none;
+  padding: 0.5rem 1rem;
+  padding-right: 2.5rem; /* Make space for the icon button */
+  background-color: transparent;
+  color: var(--secondary-text);
+  font-size: 1rem;
+  outline: none;
+  /* Take up all available space within the flex container */
+  flex-grow: 1;
+}
+
+.password-input:focus {
+  /* Remove box-shadow from here and apply to the wrapper */
+  box-shadow: none;
+}
+
+.password-input-wrapper:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.password-input::placeholder {
+  color: var(--secondary-text);
+  font-weight: 300;
+  font-size: 0.875rem;
+}
+
+.toggle-password-btn {
+  /* Remove absolute positioning */
+  position: static;
+  transform: none;
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 1.25rem;
+  padding-right: 0.75rem;
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.875rem;
+  text-align: center;
+  margin-top: -0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.connect-btn {
+  width: 128px;
+  padding: 5px;
+  background-color: var(--text-color);
+  border: 1px solid transparent;
+  color: #000;
+  font-size: 1rem;
+  font-weight: 400;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  margin-left: auto;
+  margin-top: 1.5rem;
+}
+
+.connect-btn:hover {
+  background-color: transparent;
+  border-color: var(--text-color);
+  color: var(--text-color);
+}
+
+.connect-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.hidden {
+  display: none;
+}
+
+/* --- Responsive Styles (for screens larger than 768px) --- */
+@media (min-width: 768px) {
+  .main-app h1 {
+    font-size: 1.875rem;
+    margin-bottom: 24px;
+  }
+
+  .status-text {
+    font-size: 1rem;
+  }
+
+  .network-name-text {
+    font-size: 1.25rem;
+  }
+
+  .success-content {
+    padding: 2rem;
+  }
+
+  .success-title {
+    font-size: 1.5rem;
+  }
+
+  .success-network-info {
+    font-size: 1rem;
+  }
+
+  .next-steps-title {
+    font-size: 1.125rem;
+  }
+
+  .next-steps-list {
+    font-size: 0.875rem;
+  }
+
+  .modal-content {
+    padding: 2rem;
+    width: 100%;
+  }
+
+  .network-details h2 {
+    font-size: 1.125rem;
+  }
+
+  .password-input {
+    font-size: 1.125rem;
+  }
+}
