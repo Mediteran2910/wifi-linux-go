@@ -9,14 +9,27 @@ import (
 )
 
 func main() {
+	// The Go app's sole purpose is to serve the captive portal UI and API.
 
+	// Configure static file serving.
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "static/index.html")
 	})
-	http.HandleFunc("/api/wifi/check-saved-profile", handlers.CheckProfileHandler)
+
+	// Configure API handlers for Wi-Fi management.
+	// http.HandleFunc("/api/wifi/check-saved-profile", handlers.CheckProfileHandler)
 	http.HandleFunc("/api/wifi/connect", handlers.ConnectHandler)
 	http.HandleFunc("/api/wifi/scan", handlers.ScanHandler)
+
+	http.HandleFunc("/library/test/success.html", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write([]byte("Success"))
+	})
+	http.HandleFunc("/hotspot-detect.html", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write([]byte("Success"))
+	})
 
 	s := &http.Server{
 		Addr:         ":8080",

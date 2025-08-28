@@ -60,34 +60,34 @@ func osCheck(w http.ResponseWriter) bool {
 
 // ======================= Handlers =======================
 
-// CheckProfileHandler handles the POST /api/wifi/check-saved-profile route.
-func CheckProfileHandler(w http.ResponseWriter, r *http.Request) {
-	if !osCheck(w) {
-		return
-	}
-
-	var req CheckProfileRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid request body."})
-		return
-	}
-
-	if req.SSID == "" {
-		WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "SSID is required to check for saved profile."})
-		return
-	}
-
-	cmd := exec.Command("sudo", "nmcli", "-t", "-f", "NAME", "connection", "show")
-	output, err := cmd.CombinedOutput()
-
-	if err != nil {
-		handleExecError(w, err, output)
-		return
-	}
-
-	isSaved := strings.Contains(string(output), req.SSID)
-	WriteJSON(w, http.StatusOK, CheckProfileResponse{IsSaved: isSaved})
-}
+// CheckProfileHandler is now commented out as it is not needed anymore
+// func CheckProfileHandler(w http.ResponseWriter, r *http.Request) {
+// 	if !osCheck(w) {
+// 		return
+// 	}
+//
+// 	var req CheckProfileRequest
+// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+// 		WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid request body."})
+// 		return
+// 	}
+//
+// 	if req.SSID == "" {
+// 		WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "SSID is required to check for saved profile."})
+// 		return
+// 	}
+//
+// 	cmd := exec.Command("sudo", "nmcli", "-t", "-f", "NAME", "connection", "show")
+// 	output, err := cmd.CombinedOutput()
+//
+// 	if err != nil {
+// 		handleExecError(w, err, output)
+// 		return
+// 	}
+//
+// 	isSaved := strings.Contains(string(output), req.SSID)
+// 	WriteJSON(w, http.StatusOK, CheckProfileResponse{IsSaved: isSaved})
+// }
 
 // ConnectHandler handles the POST /api/wifi/connect route.
 func ConnectHandler(w http.ResponseWriter, r *http.Request) {
@@ -107,19 +107,25 @@ func ConnectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var cmd *exec.Cmd
-	if req.Password == "" {
-		cmd = exec.Command("sudo", "nmcli", "device", "wifi", "connect", req.SSID)
-	} else {
-		cmd = exec.Command("sudo", "nmcli", "device", "wifi", "connect", req.SSID, "password", req.Password)
-	}
+	// We always pass a password, even if it's an empty string for open networks.
+	cmd = exec.Command("sudo", "nmcli", "device", "wifi", "connect", req.SSID, "password", req.Password)
 
 	output, err := cmd.CombinedOutput()
+	outputStr := string(output)
+
 	if err != nil {
-		handleExecError(w, err, output)
+		log.Printf("Connect command failed: %v, Output: %s", err, outputStr)
+
+		// Check for a wrong password error
+		if strings.Contains(outputStr, "wrong password") || strings.Contains(outputStr, "Auth: wrong password") {
+			WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "Wrong password, please try again."})
+			return
+		}
+
+		// A more generic error if the connection failed
+		WriteJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to connect to Wi-Fi network. Please check the password or try again.", "details": outputStr})
 		return
 	}
-
-	outputStr := string(output)
 
 	if strings.Contains(outputStr, "successfully activated") {
 		WriteJSON(w, http.StatusOK, ConnectResponse{Success: true, Message: "Connected to " + req.SSID})
@@ -200,7 +206,6 @@ func parseNmcliOutput(stdout string) []Network {
 			// BSSID is 6 parts right before the Signal.
 			// So it is parts[signalIndex-6 : signalIndex]
 			if signalIndex >= 6 {
-				// Corrected line: use '=' instead of ':='
 				bssidParts = parts[signalIndex-6 : signalIndex]
 				ssidParts = parts[0 : signalIndex-6]
 			} else {
@@ -210,7 +215,6 @@ func parseNmcliOutput(stdout string) []Network {
 			}
 
 		} else if len(parts) == 7 { // Simple case where BSSID doesn't contain a colon (unlikely)
-			// Corrected line: use '=' instead of ':='
 			bssidParts = parts[1:7]
 			ssidParts = parts[0:1]
 		} else { // Handle cases where nmcli output changes
@@ -233,7 +237,6 @@ func parseNmcliOutput(stdout string) []Network {
 			networkName = ssid
 		}
 
-		// CORRECTED: Change := to = for re-assignment
 		security = strings.TrimSpace(security)
 
 		// Map nmcli security strings to more readable ones

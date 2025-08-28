@@ -8,7 +8,7 @@
   </head>
   <body>
     <div id="main-app" class="main-app">
-      <h1>Wi-Fi Scanner</h1>
+      <h1>Connect device!</h1>
       <div id="status-messages">
         <p id="loading-message" class="status-text"></p>
         <p id="error-message" class="status-text error-message hidden"></p>
@@ -56,6 +56,12 @@
           <p class="network-name-label">Network Name:</p>
           <h2 class="network-name"></h2>
         </div>
+        <p>
+          If you enter the wrong password, you will be disconnected from this network, but you can simply reconnect and try again.
+        </p>
+        <p>
+          If your password is correct, you will also be disconnected as your device connects to the new network, and your router will change color.
+        </p>
         <form id="connect-form" class="connect-form">
           <div class="password-field-container hidden">
             <label for="password-input" class="password-label">Password:</label>

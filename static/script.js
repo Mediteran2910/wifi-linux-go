@@ -28,7 +28,7 @@ const connectionErrorEl = modalOverlay.querySelector("#connection-error");
 
 const loadingMessageEl = document.getElementById("loading-message");
 const errorMessageEl = document.getElementById("error-message");
-const connectingMessageEl = document.getElementById("connecting-message");
+// const connectingMessageEl = document.getElementById("connecting-message"); // Commented out
 const successPageContainer = document.getElementById("connection-success-page");
 const connectedNetworkNameEl = document.getElementById("connected-network-name");
 
@@ -40,16 +40,16 @@ let currentNetwork = null;
 function setStatus(loading, error, connecting, networksFound) {
     loadingMessageEl.classList.toggle("hidden", !loading);
     errorMessageEl.classList.toggle("hidden", !error);
-    connectingMessageEl.classList.toggle("hidden", !connecting);
+    // connectingMessageEl.classList.toggle("hidden", !connecting); // Commented out
     networksListContainer.classList.toggle("hidden", !networksFound);
     mainAppContainer.classList.toggle("hidden", false);
 }
 
-function showSuccessPage(ssid) {
-    mainAppContainer.classList.add("hidden");
-    successPageContainer.classList.remove("hidden");
-    connectedNetworkNameEl.textContent = ssid;
-}
+// function showSuccessPage(ssid) { // Commented out
+//     mainAppContainer.classList.add("hidden");
+//     successPageContainer.classList.remove("hidden");
+//     connectedNetworkNameEl.textContent = ssid;
+// }
 
 function showModal(network) {
     currentNetwork = network;
@@ -102,48 +102,13 @@ function renderNetworks(networks) {
 // --- Event Handlers ---
 async function handleNetworkSelect(network) {
     currentNetwork = network;
-    setStatus(false, false, true, false);
-    connectingMessageEl.textContent = `Attempting to connect to ${network.name || 'network'}...`;
+    // setStatus(false, false, true, false); // Commented out
+    // connectingMessageEl.textContent = `Attempting to connect to ${network.name || 'network'}...`; // Commented out
 
-    if (network.security.toLowerCase() === "none") {
-        showModal(network);
-        return;
-    }
-
-    try {
-        const checkResponse = await fetch('/api/wifi/check-saved-profile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ssid: network.name }),
-        });
-        const checkData = await checkResponse.json();
-
-        if (checkResponse.ok && checkData.isSaved) {
-            const connectResponse = await fetch('/api/wifi/connect', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ssid: network.name, password: "" }),
-            });
-            const connectData = await connectResponse.json();
-
-            if (connectResponse.ok) {
-                console.log("Immediate connection successful:", connectData.message);
-                showSuccessPage(network.name);
-            } else {
-                console.error("Immediate connection failed, showing modal:", connectData.error);
-                showModal(network);
-                connectionErrorEl.textContent = connectData.error || "Failed to connect immediately. Please enter password.";
-                connectionErrorEl.classList.remove("hidden");
-            }
-        } else {
-            showModal(network);
-        }
-    } catch (e) {
-        console.error("Error checking or immediately connecting:", e);
-        showModal(network);
-        connectionErrorEl.textContent = `Error: ${e.message}. Please enter your password.`;
-        connectionErrorEl.classList.remove("hidden");
-    }
+    // Directly show the modal and do not attempt to connect automatically.
+    // The password prompt will handle whether a password is required.
+    showModal(network);
+    setStatus(false, false, false, true); // Reset status to show networks list
 }
 
 modalCloseBtn.addEventListener("click", hideModal);
@@ -179,8 +144,9 @@ connectForm.addEventListener("submit", async (e) => {
 
     if (response.ok) {
       console.log("Connection successful:", data.message);
-      hideModal();
-      showSuccessPage(ssid);
+      connectionErrorEl.textContent = "Successfully connected! Your device will now be disconnected from the captive portal. Please check if your router has changed color.";
+      connectionErrorEl.style.color = "#4ade80"; // Set color to green for success
+      connectionErrorEl.classList.remove("hidden");
     } else {
       console.error(
         "Connection failed:",

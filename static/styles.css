@@ -40,7 +40,7 @@ body {
   margin-bottom: 1.5rem;
 }
 
-/* New Status and Message Styling */
+
 .status-text {
   text-align: center;
   color: var(--secondary-text);
@@ -51,7 +51,7 @@ body {
   color: #ef4444;
 }
 
-/* WiFi List Styling */
+
 .wifi-list-container {
   height: auto;
   background-color: transparent;
@@ -91,11 +91,10 @@ ul {
 .network-name-text {
   font-weight: 500;
   font-size: 1rem;
-  /* Ensure text doesn't wrap and push icons */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex-grow: 1; /* Allow network name to take up available space */
+  flex-grow: 1; 
   margin-left: 10px;
 }
 
@@ -103,7 +102,6 @@ ul {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  /* Prevent icons from shrinking */
   flex-shrink: 0;
   margin-right: 10px;
 }
@@ -118,7 +116,6 @@ ul {
   width: 1rem;
 }
 
-/* New Connection Success Page Styling */
 .success-page {
   background: linear-gradient(to bottom right, var(--modal-bg-start), var(--modal-bg-end));
   min-height: 100vh;
@@ -202,7 +199,7 @@ ul {
   margin-top: 1rem;
 }
 
-/* Modal styling */
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -277,7 +274,6 @@ ul {
 
 .password-input-wrapper {
   position: relative;
-  /* Add flexbox to container to properly align input and button */
   display: flex;
   align-items: center;
   border: 1px solid var(--border-color);
@@ -285,20 +281,17 @@ ul {
 }
 
 .password-input {
-  /* Remove border from input and apply it to the wrapper */
   border: none;
   padding: 0.5rem 1rem;
-  padding-right: 2.5rem; /* Make space for the icon button */
+  padding-right: 2.5rem; 
   background-color: transparent;
   color: var(--secondary-text);
   font-size: 1rem;
   outline: none;
-  /* Take up all available space within the flex container */
   flex-grow: 1;
 }
 
 .password-input:focus {
-  /* Remove box-shadow from here and apply to the wrapper */
   box-shadow: none;
 }
 
@@ -364,7 +357,6 @@ ul {
   display: none;
 }
 
-/* --- Responsive Styles (for screens larger than 768px) --- */
 @media (min-width: 768px) {
   .main-app h1 {
     font-size: 1.875rem;
