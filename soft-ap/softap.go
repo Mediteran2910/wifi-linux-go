@@ -1,121 +1,66 @@
 package softap
 
 import (
+	"fmt"
 	"log"
 	"os/exec"
+	"time"
 )
 
-// A global variable to hold the dnsmasq process
-var dnsmasqCmd *exec.Cmd
-
-// StartHotspot uses nmcli to create a Wi-Fi hotspot.
+// StartHotspot brings the interface up in AP mode and launches hostapd + dnsmasq
 func StartHotspot(iface string) error {
-	log.Println("Starting Wi-Fi hotspot...")
-
-	// 1. Disconnect any active connection to prevent conflicts.
-	disconnectCmd := exec.Command("sudo", "nmcli", "device", "disconnect", "ifname", iface)
-	if err := disconnectCmd.Run(); err != nil {
-		log.Printf("Warning: Could not disconnect from existing network: %v", err)
+	log.Println("Bringing interface down and cleaning up...")
+	if err := exec.Command("sudo", "ip", "link", "set", iface, "down").Run(); err != nil {
+		log.Printf("Failed to bring interface down: %v", err)
+	}
+	if err := exec.Command("sudo", "ip", "addr", "flush", "dev", iface).Run(); err != nil {
+		log.Printf("Failed to flush IP addresses: %v", err)
 	}
 
-	// 2. Now, create the new hotspot.
-	cmd := exec.Command("sudo", "nmcli", "dev", "wifi", "hotspot", "ifname", iface, "con-name", "my-hotspot", "ssid", "test-soft", "password", "12345678")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Printf("Failed to start hotspot: %v\nOutput: %s", err, string(output))
-		return err
+	log.Println("Stopping NetworkManager and wpa_supplicant...")
+	exec.Command("sudo", "systemctl", "stop", "NetworkManager").Run()
+	exec.Command("sudo", "killall", "wpa_supplicant").Run()
+
+	time.Sleep(1 * time.Second) // short pause for interface reset
+
+	log.Println("Bringing interface up...")
+	if err := exec.Command("sudo", "ip", "link", "set", iface, "up").Run(); err != nil {
+		return fmt.Errorf("failed to bring interface up: %v", err)
 	}
 
-	log.Println("Hotspot started successfully.")
-
-	// 3. Start dnsmasq to handle DHCP and DNS for clients.
-	if err := StartDnsmasq(iface); err != nil {
-		return err
+	log.Println("Starting hostapd...")
+	hostapdCmd := exec.Command("sudo", "hostapd", "hostapd.conf")
+	hostapdCmd.Stdout = log.Writer()
+	hostapdCmd.Stderr = log.Writer()
+	if err := hostapdCmd.Start(); err != nil {
+		return fmt.Errorf("failed to start hostapd: %v", err)
 	}
 
-	// 4. Set up the iptables rules for the captive portal.
-	return SetupCaptivePortalFirewall(iface)
-}
+	time.Sleep(1 * time.Second) // allow hostapd to initialize
 
-// SetupCaptivePortalFirewall configures iptables to redirect traffic.
-func SetupCaptivePortalFirewall(iface string) error {
-	log.Println("Setting up captive portal firewall rules...")
-
-	// The iptables rule redirects all HTTP traffic (port 80) from the hotspot interface
-	// to your local web server running on port 8080.
-	cmd := exec.Command("sudo", "iptables", "-t", "nat", "-A", "PREROUTING", "-i", iface, "-p", "tcp", "--dport", "80", "-j", "REDIRECT", "--to-port", "8080")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Printf("Failed to set up firewall rules: %v\nOutput: %s", err, string(output))
-		return err
-	}
-
-	log.Println("Captive portal firewall rules configured.")
-	return nil
-}
-
-// TeardownCaptivePortalFirewall removes the iptables rules.
-func TeardownCaptivePortalFirewall(iface string) error {
-	log.Println("Tearing down captive portal firewall rules...")
-
-	// The -D flag removes the specified rule.
-	cmd := exec.Command("sudo", "iptables", "-t", "nat", "-D", "PREROUTING", "-i", iface, "-p", "tcp", "--dport", "80", "-j", "REDIRECT", "--to-port", "8080")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Printf("Failed to tear down firewall rules: %v\nOutput: %s", err, string(output))
-		return err
-	}
-
-	log.Println("Firewall rules removed successfully.")
-	return nil
-}
-
-// StopHotspot deactivates the hotspot connection profile and dnsmasq.
-func StopHotspot(conName string, iface string) error {
-	log.Printf("Stopping hotspot connection '%s'...", conName)
-
-	// First, stop the dnsmasq process.
-	if err := StopDnsmasq(); err != nil {
-		log.Printf("Error stopping dnsmasq: %v", err)
-	}
-
-	// Then, deactivate the named connection profile.
-	cmd := exec.Command("sudo", "nmcli", "con", "down", conName)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Printf("Failed to stop hotspot: %v\nOutput: %s", err, string(output))
-		return err
-	}
-
-	log.Println("Hotspot stopped successfully.")
-	return nil
-}
-
-// StartDnsmasq runs dnsmasq on the hotspot interface.
-func StartDnsmasq(iface string) error {
-	log.Println("Starting dnsmasq for DHCP on hotspot...")
-
-	dnsmasqCmd = exec.Command("sudo", "dnsmasq",
-		"--interface="+iface,
-		"--bind-interfaces",
-		"--dhcp-range=192.168.4.2,192.168.4.200,12h")
-
+	log.Println("Starting dnsmasq...")
+	dnsmasqCmd := exec.Command("sudo", "dnsmasq", "-C", "dnsmasq.conf", "-i", iface)
+	dnsmasqCmd.Stdout = log.Writer()
+	dnsmasqCmd.Stderr = log.Writer()
 	if err := dnsmasqCmd.Start(); err != nil {
-		return err
+		return fmt.Errorf("failed to start dnsmasq: %v", err)
 	}
 
-	log.Println("dnsmasq started successfully.")
+	log.Println("Hotspot is running.")
 	return nil
 }
 
-// StopDnsmasq stops the dnsmasq process.
-func StopDnsmasq() error {
-	if dnsmasqCmd != nil && dnsmasqCmd.Process != nil {
-		log.Println("Stopping dnsmasq...")
-		if err := dnsmasqCmd.Process.Kill(); err != nil {
-			return err
-		}
-		log.Println("dnsmasq stopped.")
-	}
+// StopHotspot kills hostapd and dnsmasq
+func StopHotspot() error {
+	log.Println("Stopping hostapd and dnsmasq...")
+	exec.Command("sudo", "killall", "hostapd").Run()
+	exec.Command("sudo", "killall", "dnsmasq").Run()
+	return nil
+}
+
+// TeardownCaptivePortalFirewall placeholder
+func TeardownCaptivePortalFirewall(iface string) error {
+	// Here you would remove iptables rules for captive portal
+	log.Printf("Teardown firewall for %s (not implemented)", iface)
 	return nil
 }

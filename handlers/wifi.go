@@ -124,22 +124,18 @@ func ConnectHandler(w http.ResponseWriter, r *http.Request) {
 	if strings.Contains(outputStr, "successfully activated") {
 		WriteJSON(w, http.StatusOK, ConnectResponse{Success: true, Message: "Connected to " + req.SSID})
 
-		// On successful connection, initiate the teardown of the captive portal and Soft AP in the background.
-		// We use a goroutine so the HTTP response is sent immediately.
+		// On successful connection, teardown captive portal and Soft AP in the background.
 		go func() {
-			// Teardown the captive portal firewall rules.
 			if err := softap.TeardownCaptivePortalFirewall("wlxec750c9f9f9b"); err != nil {
 				log.Printf("Error during captive portal teardown: %v", err)
 			}
 
-			// Stop the Soft AP.
-			if err := softap.StopHotspot("my-hotspot", "wlxec750c9f9f9b"); err != nil {
+			// Corrected call: no arguments
+			if err := softap.StopHotspot(); err != nil {
 				log.Printf("Error during Soft AP teardown: %v", err)
 			}
 
-			// Once the Soft AP is down, you might want to stop the main server.
-			// This logic would need to be in main.go, as it's a server-level action.
-			// For now, the process will remain running. We'll handle this later.
+			// Server remains running for now.
 		}()
 	} else {
 		WriteJSON(w, http.StatusInternalServerError, map[string]string{"error": "Failed to connect to Wi-Fi network.", "details": outputStr})

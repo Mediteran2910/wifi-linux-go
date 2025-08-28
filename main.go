@@ -11,20 +11,21 @@ import (
 
 func main() {
 	iface := "wlxec750c9f9f9b"
+
 	if err := softap.StartHotspot(iface); err != nil {
-		log.Fatalf("Fatal: Failed to start the hotspot. Exiting.")
+		log.Fatalf("Fatal: Failed to start the hotspot: %v", err)
 	}
 
-	// Captive portal probe endpoints (Android, iOS, Windows)
-	http.HandleFunc("/generate_204", captivePortalHandler)              // Android
-	http.HandleFunc("/gen_204", captivePortalHandler)                   // Some Android variants
-	http.HandleFunc("/hotspot-detect.html", captivePortalHandler)       // iOS/macOS
-	http.HandleFunc("/library/test/success.html", captivePortalHandler) // Older iOS/macOS
-	http.HandleFunc("/ncsi.txt", captivePortalHandler)                  // Windows
-	http.HandleFunc("/connecttest.txt", captivePortalHandler)           // Windows 10+
-	http.HandleFunc("/redirect", captivePortalHandler)                  // Generic
+	// Captive portal endpoints (Android, iOS, Windows)
+	http.HandleFunc("/generate_204", captivePortalHandler)
+	http.HandleFunc("/gen_204", captivePortalHandler)
+	http.HandleFunc("/hotspot-detect.html", captivePortalHandler)
+	http.HandleFunc("/library/test/success.html", captivePortalHandler)
+	http.HandleFunc("/ncsi.txt", captivePortalHandler)
+	http.HandleFunc("/connecttest.txt", captivePortalHandler)
+	http.HandleFunc("/redirect", captivePortalHandler)
 
-	// Static files (your portal UI)
+	// Static portal files
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "static/index.html")
@@ -44,14 +45,12 @@ func main() {
 
 	log.Println("Server starting on port 8080...")
 	if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("Could not start server: %s\n", err)
+		log.Fatalf("Server error: %v", err)
 	}
 }
 
-// captivePortalHandler responds to probe requests
+// captivePortalHandler redirects devices to the portal
 func captivePortalHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Captive portal probe detected: %s from %s", r.URL.Path, r.RemoteAddr)
-
-	// Redirect client to your portal page
 	http.Redirect(w, r, "http://10.42.0.1:8080/", http.StatusFound)
 }
